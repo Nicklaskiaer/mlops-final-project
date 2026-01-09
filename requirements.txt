@@ -1,0 +1,10 @@
+pytest==9.0.2
+pre-commit==4.1.0
+invoke==2.2.0
+loguru==0.7.3
+torch>=2.0
+torchvision>=0.15
+typer>=0.13.1
+matplotlib>=3.7.2
+coverage
+ruff

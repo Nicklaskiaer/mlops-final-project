@@ -139,7 +139,6 @@ The directory structure of the project looks like this:
 ├── pyproject.toml            # Python project file
 ├── README.md                 # Project README
 ├── requirements.txt          # Project requirements
-├── requirements_dev.txt      # Development requirements
 └── tasks.py                  # Project tasks
 ```
 

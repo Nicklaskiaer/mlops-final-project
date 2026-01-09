@@ -13,11 +13,11 @@ repos:
     hooks:
     -   id: ruff-check
         name: Ruff linting
-        entry: ruff check .
+        entry: uv run ruff check .
         language: system
         pass_filenames: false
     -   id: run-tests
         name: Run tests with coverage
-        entry: bash -c "coverage run -m pytest tests/ && coverage report -m"
+        entry: bash -c "uv run coverage run -m pytest tests/ && uv run coverage report -m"
         language: system
         pass_filenames: false

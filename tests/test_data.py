@@ -1,5 +1,4 @@
 from pathlib import Path
-from unittest.mock import patch
 
 import torch
 from torch.utils.data import Dataset
@@ -34,8 +33,8 @@ def test_dataset_getitem():
     dataset = MyDataset(Path("data/raw"))
     item = dataset.__getitem__(0)
     assert isinstance(item, dict)
-    assert 'input_values' in item
-    assert 'label' in item
-    assert 'label_name' in item
-    assert 'file_path' in item
-    assert isinstance(item['input_values'], torch.Tensor)
+    assert "input_values" in item
+    assert "label" in item
+    assert "label_name" in item
+    assert "file_path" in item
+    assert isinstance(item["input_values"], torch.Tensor)

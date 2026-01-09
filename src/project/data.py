@@ -1,8 +1,8 @@
-from pathlib import Path
-
 import librosa
 import torch
 import typer
+
+from pathlib import Path
 from torch.utils.data import Dataset
 
 
@@ -19,7 +19,7 @@ class MyDataset(Dataset):
             for folder in self.processed_path.iterdir():
                 if folder.is_dir():
                     label = folder.name
-                    for file_path in folder.glob('*.pt'):
+                    for file_path in folder.glob("*.pt"):
                         self.files.append(file_path)
                         self.labels.append(label)
         else:
@@ -29,8 +29,8 @@ class MyDataset(Dataset):
             for folder in self.raw_path.iterdir():
                 if folder.is_dir():
                     label = folder.name
-                    for file_path in folder.glob('*'):
-                        if file_path.suffix.lower() in ['.wav', '.3gp']:
+                    for file_path in folder.glob("*"):
+                        if file_path.suffix.lower() in [".wav", ".3gp"]:
                             self.files.append(file_path)
                             self.labels.append(label)
         self.label_to_idx = {label: idx for idx, label in enumerate(sorted(set(self.labels)))}
@@ -51,12 +51,7 @@ class MyDataset(Dataset):
             # Load from raw
             waveform, sr = librosa.load(str(file_path), sr=16000)
             waveform = torch.tensor(waveform).float()
-        return {
-            'input_values': waveform,
-            'label': label_idx,
-            'label_name': label,
-            'file_path': file_path
-        }
+        return {"input_values": waveform, "label": label_idx, "label_name": label, "file_path": file_path}
 
     def preprocess(self, output_folder: Path) -> None:
         """Preprocess the raw data and save it to the output folder."""
@@ -65,12 +60,13 @@ class MyDataset(Dataset):
             if folder.is_dir():
                 label = folder.name
                 (output_folder / label).mkdir(exist_ok=True)
-                for file_path in folder.glob('*'):
-                    if file_path.suffix.lower() in ['.wav', '.3gp']:
+                for file_path in folder.glob("*"):
+                    if file_path.suffix.lower() in [".wav", ".3gp"]:
                         waveform, sr = librosa.load(str(file_path), sr=16000)
                         waveform = torch.tensor(waveform).float()
                         output_path = output_folder / label / f"{file_path.stem}.pt"
                         torch.save(waveform, output_path)
+
 
 def preprocess(data_path: Path = Path("data/raw"), output_folder: Path = Path("data/processed")) -> None:
     print("Preprocessing data...")

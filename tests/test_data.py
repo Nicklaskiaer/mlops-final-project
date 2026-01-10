@@ -1,6 +1,6 @@
 from pathlib import Path
-from unittest.mock import patch
 
+import torch
 from torch.utils.data import Dataset
 
 from project.data import MyDataset, preprocess
@@ -16,22 +16,25 @@ def test_preprocess():
     """Test the preprocess function."""
     data_path = Path("data/raw")
     output_folder = Path("data/processed")
-    with patch('builtins.print') as mock_print:
-        preprocess(data_path, output_folder)
-        mock_print.assert_called_once_with("Preprocessing data...")
+    preprocess(data_path, output_folder)
+    assert output_folder.exists()
 
 
 def test_dataset_len():
     """Test the __len__ method."""
     dataset = MyDataset(Path("data/raw"))
-    # Since not implemented, it returns None, but for coverage
     length = dataset.__len__()
-    assert length is None
+    assert isinstance(length, int)
+    assert length > 0
 
 
 def test_dataset_getitem():
     """Test the __getitem__ method."""
     dataset = MyDataset(Path("data/raw"))
-    # Since not implemented, it returns None
     item = dataset.__getitem__(0)
-    assert item is None
+    assert isinstance(item, dict)
+    assert "input_values" in item
+    assert "label" in item
+    assert "label_name" in item
+    assert "file_path" in item
+    assert isinstance(item["input_values"], torch.Tensor)

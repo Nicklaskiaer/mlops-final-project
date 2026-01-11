@@ -87,9 +87,9 @@ class MyDataset(Dataset):
         file_path = self.files[index]
         label = self.labels[index]
         label_idx = self.label_to_idx[label]
+
         try:
-            self.processed_path.exists() and any(self.processed_path.iterdir()):
-            # Load from processed
+            self.processed_path.exists() and any(self.processed_path.iterdir())
             waveform = torch.load(str(file_path))
         except:
             print('Must preprocess raw files')

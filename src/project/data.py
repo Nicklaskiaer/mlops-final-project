@@ -8,22 +8,18 @@ from torch.utils.data import Dataset
 import random
 import numpy as np
 
+
 class MyDataset(Dataset):
     """My custom dataset."""
 
-    def __init__(self, data_path: Path, split: str) -> None:
+    def __init__(self, data_path: Path, split="test") -> None:
         random.seed(42)
         self.raw_path = data_path
         self.processed_path = data_path.parent / "processed"
 
         self.files, self.labels, self.classes, self.label_to_idx = self.process_indices(split)
 
-
-
-
-
     def process_indices(self, split: str):
-        
         if self.processed_path.exists() and any(self.processed_path.iterdir()):
             # Load from processed data
             files = []
@@ -49,34 +45,30 @@ class MyDataset(Dataset):
         classes = np.array([label_to_idx[label] for label in labels])
         files = np.array(files)
 
-        random_indexes = np.arange(0,len(files))
+        random_indexes = np.arange(0, len(files))
         np.random.shuffle(random_indexes)
-        props_cum = {'train':0.8, 'val':0.9, 'test':1.0}
+        props_cum = {"train": 0.8, "val": 0.9, "test": 1.0}
         N = len(classes)
 
-
-        if split == 'train':
-            train_indexes = random_indexes[:int(props_cum['train']* N)]
+        if split == "train":
+            train_indexes = random_indexes[: int(props_cum["train"] * N)]
             classes = classes[train_indexes]
             files = files[train_indexes]
             labels = [labels[i] for i in train_indexes]
-        elif split == 'val':
-            val_indexes = random_indexes[int(props_cum['train']* N):int(props_cum['val'] * N)]
+        elif split == "val":
+            val_indexes = random_indexes[int(props_cum["train"] * N) : int(props_cum["val"] * N)]
 
             classes = classes[val_indexes]
             files = files[val_indexes]
             labels = [labels[i] for i in val_indexes]
-        elif split == 'test':
-            test_indexes = classes[int(props_cum['val']* N):int(props_cum['test'] * N)]
+        elif split == "test":
+            test_indexes = classes[int(props_cum["val"] * N) : int(props_cum["test"] * N)]
 
             classes = classes[test_indexes]
             files = files[test_indexes]
             labels = [labels[i] for i in test_indexes]
 
-
         return files, labels, classes, label_to_idx
-
-
 
     def __len__(self) -> int:
         """Return the length of the dataset."""
@@ -89,11 +81,13 @@ class MyDataset(Dataset):
         label_idx = self.label_to_idx[label]
 
         try:
-            self.processed_path.exists() and any(self.processed_path.iterdir())
-            waveform = torch.load(str(file_path))
-        except:
-            print('Must preprocess raw files')
-            
+            if self.processed_path.exists() and any(self.processed_path.iterdir()):
+                waveform = torch.load(str(file_path))
+            else:
+                raise FileNotFoundError("Processed data not found")
+        except Exception:
+            print("Must preprocess raw files")
+
         return {"input_values": waveform, "label": label_idx, "label_name": label, "file_path": file_path}
 
     def _load_3gp_audio(self, file_path: Path) -> torch.Tensor:

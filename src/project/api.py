@@ -14,10 +14,8 @@ MODEL_PATH = Path("models/checkpoints/best_hubert_model.pt")
 
 # Hardcoded classes based on your sorted folder names (alphabetical order)
 # This ensures we map index 0 -> "belly_pain", etc. correctly without loading the dataset.
-CLASS_NAMES = [
-    "belly pain", "burping", "cold_hot", "discomfort", 
-    "hungry", "lonely", "scared", "tired"
-]
+CLASS_NAMES = ["belly pain", "burping", "cold_hot", "discomfort", "hungry", "lonely", "scared", "tired"]
+
 
 @app.on_event("startup")
 def load_model():
@@ -25,7 +23,7 @@ def load_model():
     Load the model into memory when the server starts.
     """
     global model_instance
-    
+
     # 1. Device selection (M1/CUDA/CPU)
     if torch.cuda.is_available():
         device = "cuda"
@@ -33,16 +31,16 @@ def load_model():
         device = "mps"
     else:
         device = "cpu"
-    
+
     print(f"Loading model on {device}...")
-    
+
     try:
         # Initialize the architecture (Must match training!)
         model = HubertClassifier(
-            model_name="ntu-spml/distilhubert", #TODO: use .env var instead
-            num_labels=len(CLASS_NAMES)
+            model_name="ntu-spml/distilhubert",  # TODO: use .env var instead
+            num_labels=len(CLASS_NAMES),
         )
-        
+
         # Load weights
         if MODEL_PATH.exists():
             state_dict = torch.load(MODEL_PATH, map_location=device)
@@ -53,9 +51,10 @@ def load_model():
             print("Model loaded successfully!")
         else:
             print(f"WARNING: Checkpoint not found at {MODEL_PATH}. API will fail on inference.")
-            
+
     except Exception as e:
         print(f"Error loading model: {e}")
+
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
@@ -70,33 +69,35 @@ async def predict(file: UploadFile = File(...)):
     try:
         with temp_file.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-            
+
         # 2. Run Inference using our Model's robust predict method
         # This handles the resampling/preprocessing internally
         result = model_instance.predict(temp_file)
-        
+
         # 3. Add human-readable label
         predicted_idx = result["predicted_label_idx"]
         label_name = CLASS_NAMES[predicted_idx] if predicted_idx < len(CLASS_NAMES) else "Unknown"
-        
+
         return {
             "filename": file.filename,
             "prediction": label_name,
             "confidence": f"{result['confidence']:.2%}",
-            "details": result
+            "details": result,
         }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
     finally:
         # Cleanup temp file
         if temp_file.exists():
             temp_file.unlink()
 
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "model_loaded": model_instance is not None}
+
 
 if __name__ == "__main__":
     # Allow running this script directly for debugging

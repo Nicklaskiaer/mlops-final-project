@@ -1,6 +1,5 @@
 import torch
 import typer
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
@@ -15,6 +14,7 @@ from src.project.model import HubertClassifier
 
 app = typer.Typer()
 
+
 def collate_fn(batch: List[Dict]) -> Dict[str, torch.Tensor]:
     """
     Same collate function as train.py to handle variable length audio.
@@ -22,21 +22,16 @@ def collate_fn(batch: List[Dict]) -> Dict[str, torch.Tensor]:
     input_values = [item["input_values"] for item in batch]
     labels = [item["label"] for item in batch]
 
-    input_values_padded = torch.nn.utils.rnn.pad_sequence(
-        input_values, batch_first=True, padding_value=0.0
-    )
+    input_values_padded = torch.nn.utils.rnn.pad_sequence(input_values, batch_first=True, padding_value=0.0)
 
     attention_mask = torch.zeros_like(input_values_padded)
     for i, item in enumerate(input_values):
-        attention_mask[i, :item.shape[0]] = 1
+        attention_mask[i, : item.shape[0]] = 1
 
     labels_tensor = torch.tensor(labels, dtype=torch.long)
 
-    return {
-        "input_values": input_values_padded,
-        "attention_mask": attention_mask,
-        "labels": labels_tensor
-    }
+    return {"input_values": input_values_padded, "attention_mask": attention_mask, "labels": labels_tensor}
+
 
 @app.command()
 def evaluate(
@@ -44,7 +39,7 @@ def evaluate(
     data_path: Path = Path("data/raw"),
     batch_size: int = 16,
     device_name: str = "auto",
-    save_matrix: bool = True
+    save_matrix: bool = True,
 ):
     """
     Evaluate the trained HuBERT model on the Test set.
@@ -59,27 +54,22 @@ def evaluate(
             device = torch.device("cpu")
     else:
         device = torch.device(device_name)
-    
+
     print(f"Using device: {device}")
 
     # --- 2. Load Test Data ---
     print("Loading test dataset...")
     test_dataset = MyDataset(data_path, split="test")
-    
+
     # Get class names for better reporting
     # Inverting the label_to_idx dictionary: {0: 'belly_pain', 1: 'hungry', ...}
     idx_to_label = {v: k for k, v in test_dataset.label_to_idx.items()}
     class_names = [idx_to_label[i] for i in range(len(idx_to_label))]
     num_labels = len(class_names)
-    
+
     print(f"Classes: {class_names}")
 
-    test_loader = DataLoader(
-        test_dataset, 
-        batch_size=batch_size, 
-        shuffle=False, 
-        collate_fn=collate_fn
-    )
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 
     # --- 3. Load Model ---
     if not model_path.exists():
@@ -87,18 +77,15 @@ def evaluate(
         raise typer.Exit(code=1)
 
     print(f"Loading model from {model_path}...")
-    
+
     # IMPORTANT: Ensure model_name matches what you trained with (distilhubert)
-    model = HubertClassifier(
-        model_name="ntu-spml/distilhubert", 
-        num_labels=num_labels
-    )
-    
+    model = HubertClassifier(model_name="ntu-spml/distilhubert", num_labels=num_labels)
+
     # Load weights
     # map_location ensures we can load a GPU model on CPU/MPS if needed
     state_dict = torch.load(model_path, map_location=device)
     model.load_state_dict(state_dict)
-    
+
     model.to(device)
     model.eval()
 
@@ -115,7 +102,7 @@ def evaluate(
 
             # We only need logits here
             logits = model(input_values, attention_mask=attention_mask)
-            
+
             # Handle the tuple return type we fixed earlier
             if isinstance(logits, tuple):
                 logits = logits[1]
@@ -126,20 +113,20 @@ def evaluate(
             all_labels.extend(labels.cpu().numpy())
 
     # --- 5. Metrics & Reporting ---
-    print("\n" + "="*30)
+    print("\n" + "=" * 30)
     print("CLASSIFICATION REPORT")
-    print("="*30)
-    
+    print("=" * 30)
+
     # FIX: Define the list of all possible label indices [0, 1, ... 7]
     all_label_ids = list(range(num_labels))
 
     # Detailed text report
     report = classification_report(
-        all_labels, 
-        all_preds, 
-        labels=all_label_ids,       # <--- ADD THIS: Force it to look for all 8 IDs
-        target_names=class_names,   # Now this matches the list above
-        zero_division=0             # Handles classes that have no predictions/samples
+        all_labels,
+        all_preds,
+        labels=all_label_ids,  # <--- ADD THIS: Force it to look for all 8 IDs
+        target_names=class_names,  # Now this matches the list above
+        zero_division=0,  # Handles classes that have no predictions/samples
     )
     print(report)
 
@@ -147,24 +134,18 @@ def evaluate(
     if save_matrix:
         # FIX: Also pass labels here so the matrix is always 8x8
         cm = confusion_matrix(all_labels, all_preds, labels=all_label_ids)
-        
+
         plt.figure(figsize=(10, 8))
-        sns.heatmap(
-            cm, 
-            annot=True, 
-            fmt='d', 
-            cmap='Blues', 
-            xticklabels=class_names, 
-            yticklabels=class_names
-        )
-        plt.xlabel('Predicted')
-        plt.ylabel('Actual')
-        plt.title('Confusion Matrix - HuBERT Audio Classification')
-        
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=class_names, yticklabels=class_names)
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        plt.title("Confusion Matrix - HuBERT Audio Classification")
+
         save_path = Path("reports/figures/confusion_matrix.png")
         save_path.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path)
         print(f"\nConfusion matrix saved to: {save_path}")
+
 
 if __name__ == "__main__":
     app()

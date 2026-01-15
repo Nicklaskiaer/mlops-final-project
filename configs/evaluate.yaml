@@ -1,0 +1,23 @@
+# @package _global_
+# Evaluation configuration
+
+defaults:
+  - model: default
+  - _self_
+
+# Data paths
+data:
+  raw_path: data/raw
+  processed_path: data/processed
+
+# Model checkpoint
+checkpoint_path: models/checkpoints/best_hubert_model.pt
+
+# Evaluation settings
+evaluation:
+  batch_size: 16
+  save_confusion_matrix: true
+  output_dir: reports/figures
+
+# Device configuration
+device: auto

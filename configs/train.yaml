@@ -1,0 +1,29 @@
+# @package _global_
+# Training configuration for Infant Cry Classification
+
+defaults:
+  - model: default
+  - _self_
+
+# Data paths
+data:
+  raw_path: data/raw
+  processed_path: data/processed
+
+# Training hyperparameters
+training:
+  epochs: 10
+  batch_size: 8
+  learning_rate: 2e-5
+  num_workers: 0
+
+# Device configuration
+device: auto  # Options: auto, cpu, cuda, mps
+
+# Output paths
+output:
+  checkpoint_dir: models/checkpoints
+  log_dir: outputs/logs
+
+# Seed for reproducibility
+seed: 42

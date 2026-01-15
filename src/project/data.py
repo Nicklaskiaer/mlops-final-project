@@ -1,132 +1,179 @@
-import av
-import librosa
 import torch
 import typer
-
+import json
+import torchaudio
+import av  # <--- CRITICAL: PyAV handles the .3gp files
+import numpy as np
 from pathlib import Path
 from torch.utils.data import Dataset
-import random
-import numpy as np
 
 
 class MyDataset(Dataset):
     """My custom dataset."""
 
     def __init__(self, data_path: Path, split="test") -> None:
-        random.seed(42)
         self.raw_path = data_path
         self.processed_path = data_path.parent / "processed"
 
+        # Load indices and save class mapping
         self.files, self.labels, self.classes, self.label_to_idx = self.process_indices(split)
 
     def process_indices(self, split: str):
+        # 1. Gather all files first
+        files = []
+        labels = []
+
+        # Logic to choose raw or processed source
+        # If processed folder has files, use them. Otherwise scan raw.
         if self.processed_path.exists() and any(self.processed_path.iterdir()):
-            # Load from processed data
-            files = []
-            labels = []
-            for folder in self.processed_path.iterdir():
-                if folder.is_dir():
-                    label = folder.name
-                    for file_path in folder.glob("*.pt"):
+            source_dir = self.processed_path
+            is_processed = True
+        else:
+            source_dir = self.raw_path
+            is_processed = False
+
+        for folder in source_dir.iterdir():
+            if folder.is_dir():
+                label = folder.name
+                # If processed, look for .pt; if raw, look for audio ext
+                extensions = ["*.pt"] if is_processed else ["*.wav", "*.3gp", "*.mp3"]
+                for ext in extensions:
+                    for file_path in folder.glob(ext):
                         files.append(file_path)
                         labels.append(label)
-        else:
-            # Load from raw data
-            files = []
-            labels = []
-            for folder in self.raw_path.iterdir():
-                if folder.is_dir():
-                    label = folder.name
-                    for file_path in folder.glob("*"):
-                        if file_path.suffix.lower() in [".wav", ".3gp"]:
-                            files.append(file_path)
-                            labels.append(label)
-        label_to_idx = {label: idx for idx, label in enumerate(sorted(set(labels)))}
+
+        # 2. Create deterministic mappings
+        unique_labels = sorted(set(labels))
+        label_to_idx = {label: idx for idx, label in enumerate(unique_labels)}
+
+        # Save labels for API use (Only need to do this once, e.g. during training)
+        if split == "train":
+            with open(self.raw_path.parent / "labels.json", "w") as f:
+                json.dump(unique_labels, f)
+
         classes = np.array([label_to_idx[label] for label in labels])
         files = np.array(files)
 
+        # 3. Deterministic Shuffle
+        np.random.seed(42)
         random_indexes = np.arange(0, len(files))
         np.random.shuffle(random_indexes)
+
+        # Split logic
         props_cum = {"train": 0.8, "val": 0.9, "test": 1.0}
         N = len(classes)
 
         if split == "train":
-            train_indexes = random_indexes[: int(props_cum["train"] * N)]
-            classes = classes[train_indexes]
-            files = files[train_indexes]
-            labels = [labels[i] for i in train_indexes]
+            idxs = random_indexes[: int(props_cum["train"] * N)]
         elif split == "val":
-            val_indexes = random_indexes[int(props_cum["train"] * N) : int(props_cum["val"] * N)]
-
-            classes = classes[val_indexes]
-            files = files[val_indexes]
-            labels = [labels[i] for i in val_indexes]
+            idxs = random_indexes[int(props_cum["train"] * N) : int(props_cum["val"] * N)]
         elif split == "test":
-            test_indexes = classes[int(props_cum["val"] * N) : int(props_cum["test"] * N)]
+            idxs = random_indexes[int(props_cum["val"] * N) : int(props_cum["test"] * N)]
+        else:
+            raise ValueError(f"Unknown split {split}")
 
-            classes = classes[test_indexes]
-            files = files[test_indexes]
-            labels = [labels[i] for i in test_indexes]
-
-        return files, labels, classes, label_to_idx
+        return files[idxs], [labels[i] for i in idxs], classes[idxs], label_to_idx
 
     def __len__(self) -> int:
-        """Return the length of the dataset."""
         return len(self.files)
 
     def __getitem__(self, index: int):
-        """Return a given sample from the dataset."""
         file_path = self.files[index]
         label = self.labels[index]
         label_idx = self.label_to_idx[label]
 
+        waveform = None
+
         try:
-            if self.processed_path.exists() and any(self.processed_path.iterdir()):
+            # Load data
+            if file_path.suffix == ".pt":
                 waveform = torch.load(str(file_path))
             else:
-                raise FileNotFoundError("Processed data not found")
-        except Exception:
-            print("Must preprocess raw files")
+                # Fallback for raw loading (using helper)
+                waveform = self._load_audio(file_path)
+        except Exception as e:
+            # If a specific file fails, return silence to prevent crash
+            print(f"Error loading {file_path}: {e}")
+            waveform = torch.zeros(16000)
 
-        return {"input_values": waveform, "label": label_idx, "label_name": label, "file_path": file_path}
+        return {"input_values": waveform, "label": label_idx, "label_name": label, "file_path": str(file_path)}
 
-    def _load_3gp_audio(self, file_path: Path) -> torch.Tensor:
-        """Load audio from .3gp file using PyAV."""
-        container = av.open(str(file_path))
-        audio_stream = next(s for s in container.streams if s.type == "audio")
-        resampler = av.audio.resampler.AudioResampler(format="fltp", layout="mono", rate=16000)  # type: ignore
-        waveform = []
-        for frame in container.decode(audio_stream):
-            resampled_frames = resampler.resample(frame)
-            for f in resampled_frames:
-                waveform.append(torch.tensor(f.to_ndarray()).squeeze().float())
-        if waveform:
-            return torch.cat(waveform, dim=0)
+    def _load_audio(self, file_path: Path) -> torch.Tensor:
+        """
+        Smart loader: uses PyAV for .3gp and Torchaudio for .wav
+        """
+        path_str = str(file_path)
+
+        # --- STRATEGY A: Handle .3gp with PyAV ---
+        if file_path.suffix.lower() == ".3gp":
+            try:
+                container = av.open(path_str)
+                audio_stream = next(s for s in container.streams if s.type == "audio")
+
+                # Resample immediately using PyAV's internal tools
+                resampler = av.audio.resampler.AudioResampler(format="fltp", layout="mono", rate=16000)
+
+                parts = []
+                for frame in container.decode(audio_stream):
+                    resampled_frames = resampler.resample(frame)
+                    for f in resampled_frames:
+                        # Convert to torch tensor
+                        parts.append(torch.from_numpy(f.to_ndarray()).float())
+
+                if parts:
+                    waveform = torch.cat(parts, dim=1).squeeze()
+                else:
+                    return torch.zeros(16000)
+
+                return waveform
+
+            except Exception as e:
+                # If AV fails, raise so we see it
+                raise RuntimeError(f"PyAV failed on {file_path}: {e}")
+
+        # --- STRATEGY B: Handle everything else with Torchaudio ---
         else:
-            return torch.tensor([]).float()
+            wav, sr = torchaudio.load(path_str)
 
-    def preprocess(self, output_folder: Path) -> None:
-        """Preprocess the raw data and save it to the output folder."""
-        output_folder.mkdir(parents=True, exist_ok=True)
-        for folder in self.raw_path.iterdir():
-            if folder.is_dir():
-                label = folder.name
-                (output_folder / label).mkdir(exist_ok=True)
-                for file_path in folder.glob("*"):
-                    if file_path.suffix.lower() in [".wav", ".3gp"]:
-                        if file_path.suffix.lower() == ".3gp":
-                            waveform = self._load_3gp_audio(file_path)
-                        else:
-                            waveform, sr = librosa.load(str(file_path), sr=16000)
-                            waveform = torch.tensor(waveform).float()
-                        output_path = output_folder / label / f"{file_path.stem}.pt"
-                        torch.save(waveform, output_path)
+            # Resample
+            if sr != 16000:
+                resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=16000)
+                wav = resampler(wav)
+
+            # Mono
+            if wav.shape[0] > 1:
+                wav = torch.mean(wav, dim=0, keepdim=True)
+
+            return wav.squeeze()
 
 
 def preprocess(data_path: Path = Path("data/raw"), output_folder: Path = Path("data/processed")) -> None:
     print("Preprocessing data...")
-    dataset = MyDataset(data_path)
-    dataset.preprocess(output_folder)
+
+    # Instantiate dataset just to access the helper method easily,
+    # but we will manually iterate ALL files in data/raw to ensure 100% coverage.
+    dummy_dataset = MyDataset(data_path, split="train")
+
+    output_folder.mkdir(parents=True, exist_ok=True)
+
+    for folder in data_path.iterdir():
+        if folder.is_dir():
+            label = folder.name
+            print(f"Processing {label}...")
+            (output_folder / label).mkdir(exist_ok=True, parents=True)
+
+            for file_path in folder.glob("*"):
+                # Filter for audio extensions
+                if file_path.suffix.lower() in [".wav", ".3gp", ".mp3"]:
+                    try:
+                        # Use the robust loader
+                        waveform = dummy_dataset._load_audio(file_path)
+
+                        # Save as .pt tensor
+                        torch.save(waveform, output_folder / label / f"{file_path.stem}.pt")
+                    except Exception as e:
+                        print(f"Failed {file_path}: {e}")
+
     print("Preprocess finished successfully")
 
 

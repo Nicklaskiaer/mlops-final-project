@@ -112,9 +112,9 @@ def train(
 
         # Progress bar for training
         pbar = tqdm(train_loader, desc="Training")
-        
+
         # Define accumulation steps if you want to save more memory (optional)
-        # accumulation_steps = 4 
+        # accumulation_steps = 4
         for step, batch in enumerate(pbar):
             input_values = batch["input_values"].to(device)
             attention_mask = batch["attention_mask"].to(device)
@@ -130,7 +130,7 @@ def train(
             optimizer.step()
 
             train_loss += loss.item()
-            
+
             # Update metrics
             preds = torch.argmax(logits, dim=-1)
             train_correct += (preds == labels).sum().item()
@@ -141,7 +141,7 @@ def train(
             # --- THE FIX: AGGRESSIVE MEMORY CLEANUP ---
             # Explicitly delete tensors to break the graph reference immediately
             del input_values, attention_mask, labels, loss, logits, preds
-            
+
             # Force PyTorch/MPS to release memory every 10 steps
             if step % 10 == 0:
                 if device.type == "mps":
@@ -176,7 +176,6 @@ def train(
 
         print(f"Train Loss: {avg_train_loss:.4f} | Train Acc: {train_acc:.4f}")
         print(f"Val Loss:   {avg_val_loss:.4f} | Val Acc:   {val_acc:.4f}")
-
 
         # --- 5. Save Best Model ---
         if avg_val_loss < best_val_loss:

@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import librosa
+import torchaudio
 import numpy as np
 from pathlib import Path
 from typing import Union, Tuple, Optional
@@ -93,12 +93,30 @@ class HubertClassifier(nn.Module):
         }
 
     def _ensure_audio_format(self, audio_input: Union[str, Path, np.ndarray, torch.Tensor]) -> np.ndarray:
-        """Helper to load audio and resample to 16kHz."""
+        """Helper to load audio and resample to 16kHz using Torchaudio."""
         waveform = None
 
         if isinstance(audio_input, (str, Path)):
             path = str(audio_input)
-            waveform, sr = librosa.load(path, sr=self.target_sampling_rate)
+
+            # --- FIXED: Use Torchaudio instead of Librosa ---
+            # 1. Load audio (returns Tensor [Channels, Time])
+            wav_tensor, sr = torchaudio.load(path)
+
+            # 2. Resample if necessary
+            if sr != self.target_sampling_rate:
+                resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=self.target_sampling_rate)
+                wav_tensor = resampler(wav_tensor)
+
+            # 3. Convert to Mono (average channels if > 1)
+            if wav_tensor.shape[0] > 1:
+                wav_tensor = torch.mean(wav_tensor, dim=0, keepdim=True)
+
+            # 4. Squeeze to 1D array for Feature Extractor
+            wav_tensor = wav_tensor.squeeze()
+
+            # 5. Convert to Numpy
+            waveform = wav_tensor.numpy()
 
         elif isinstance(audio_input, np.ndarray):
             waveform = audio_input

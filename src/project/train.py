@@ -112,27 +112,42 @@ def train(
 
         # Progress bar for training
         pbar = tqdm(train_loader, desc="Training")
-        for batch in pbar:
+        
+        # Define accumulation steps if you want to save more memory (optional)
+        # accumulation_steps = 4 
+        for step, batch in enumerate(pbar):
             input_values = batch["input_values"].to(device)
             attention_mask = batch["attention_mask"].to(device)
             labels = batch["labels"].to(device)
 
-            optimizer.zero_grad()
+            # Optimization 1: set_to_none=True is faster and uses less RAM than setting to 0
+            optimizer.zero_grad(set_to_none=True)
 
-            # Forward pass (returns loss, logits because labels are provided)
+            # Forward pass
             loss, logits = model(input_values=input_values, attention_mask=attention_mask, labels=labels)
 
             loss.backward()
             optimizer.step()
 
             train_loss += loss.item()
-
-            # Calculate accuracy for display
+            
+            # Update metrics
             preds = torch.argmax(logits, dim=-1)
             train_correct += (preds == labels).sum().item()
             train_total += labels.size(0)
 
             pbar.set_postfix({"loss": f"{loss.item():.4f}"})
+
+            # --- THE FIX: AGGRESSIVE MEMORY CLEANUP ---
+            # Explicitly delete tensors to break the graph reference immediately
+            del input_values, attention_mask, labels, loss, logits, preds
+            
+            # Force PyTorch/MPS to release memory every 10 steps
+            if step % 10 == 0:
+                if device.type == "mps":
+                    torch.mps.empty_cache()
+                elif device.type == "cuda":
+                    torch.cuda.empty_cache()
 
         avg_train_loss = train_loss / len(train_loader)
         train_acc = train_correct / train_total
@@ -161,6 +176,7 @@ def train(
 
         print(f"Train Loss: {avg_train_loss:.4f} | Train Acc: {train_acc:.4f}")
         print(f"Val Loss:   {avg_val_loss:.4f} | Val Acc:   {val_acc:.4f}")
+
 
         # --- 5. Save Best Model ---
         if avg_val_loss < best_val_loss:

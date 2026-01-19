@@ -10,7 +10,9 @@ from typing import List, Dict
 # Assuming src is in python path or run as module
 from src.project.data import MyDataset
 from src.project.model import HubertClassifier
+from sklearn.metrics import classification_report
 
+import sklearn
 app = typer.Typer()
 
 
@@ -95,7 +97,7 @@ def train(
     model.to(device)
 
     # Optimizer
-    optimizer = AdamW(model.parameters(), lr=learning_rate)
+    optimizer = AdamW(model.parameters(), lr=learning_rate, weight_decay= 0.005)
 
     # --- 4. Training Loop ---
     best_val_loss = float("inf")
@@ -158,6 +160,10 @@ def train(
         val_correct = 0
         val_total = 0
 
+        all_preds, all_labels = [],[]
+
+
+
         with torch.no_grad():
             for batch in val_loader:
                 input_values = batch["input_values"].to(device)
@@ -170,6 +176,17 @@ def train(
                 preds = torch.argmax(logits, dim=-1)
                 val_correct += (preds == labels).sum().item()
                 val_total += labels.size(0)
+                all_preds.append(preds.cpu())
+                all_labels.append(labels.cpu())
+
+
+        all_preds = torch.hstack(all_preds)
+        all_labels = torch.hstack(all_labels)
+
+        
+        print(classification_report(all_preds, all_labels))
+
+
 
         avg_val_loss = val_loss / len(val_loader)
         val_acc = val_correct / val_total

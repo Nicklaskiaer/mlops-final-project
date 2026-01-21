@@ -39,10 +39,10 @@ These baselines serve as lower bounds for model performance.
 
 We investigate transformer-based speech representation models:
 
-- **HuBERT (Hidden-Unit BERT)**  
+- **HuBERT (Hidden-Unit BERT)**
   A state-of-the-art self-supervised transformer model that learns rich speech representations directly from raw audio.
 
-- **Lightweight HuBERT**  
+- **Lightweight HuBERT**
   A computationally efficient variant of HuBERT designed to reduce model complexity while retaining strong performance.
 
 Given the limited dataset size, we fine-tune a pretrained Lightweight HuBERT model rather than training from scratch.
@@ -51,10 +51,10 @@ Given the limited dataset size, we fine-tune a pretrained Lightweight HuBERT mod
 
 ## Training Strategy
 
-- **Learning paradigm:** Supervised learning  
-- **Task:** Multi-class audio classification (8 classes)  
-- **Input:** Raw audio waveforms  
-- **Output:** Infant emotion label  
+- **Learning paradigm:** Supervised learning
+- **Task:** Multi-class audio classification (8 classes)
+- **Input:** Raw audio waveforms
+- **Output:** Infant emotion label
 
 To robustly assess model performance, we employ a **two-level (nested) cross-validation** strategy, enabling reliable evaluation despite the limited amount of data.
 
@@ -64,10 +64,10 @@ To robustly assess model performance, we employ a **two-level (nested) cross-val
 
 Model performance is evaluated using the following metrics:
 
-- Accuracy  
-- Precision  
-- Recall  
-- F1-score  
+- Accuracy
+- Precision
+- Recall
+- F1-score
 
 These metrics provide a comprehensive view of classification performance, particularly in the presence of potential class imbalance.
 
@@ -75,13 +75,58 @@ These metrics provide a comprehensive view of classification performance, partic
 
 ## Project Workflow
 
-1. Select dataset and model architecture  
-2. Create project repository  
-3. Upload project description as part of `README.md`  
-4. Implement baseline models  
-5. Fine-tune Lightweight HuBERT on the dataset  
-6. Evaluate performance using nested cross-validation  
-7. Analyze results and compare against baselines  
+1. Select dataset and model architecture
+2. Create project repository
+3. Upload project description as part of `README.md`
+4. Implement baseline models
+5. Fine-tune Lightweight HuBERT on the dataset
+6. Evaluate performance using nested cross-validation
+7. Analyze results and compare against baselines
+
+---
+
+## Docker
+
+The project includes Docker support for containerized deployment.
+
+### Prerequisites
+
+- Docker installed on your system
+- Docker Compose (usually included with Docker Desktop)
+
+### Building and Running
+
+To build and run the API service:
+
+```bash
+# Build the API image
+docker build -t infant-cry-api .
+
+# Run the API container
+docker run -p 8000:8000 -v $(pwd)/data:/app/data -v $(pwd)/models:/app/models infant-cry-api
+```
+
+Or using Docker Compose (recommended):
+
+```bash
+# Start the API service
+docker-compose up api
+
+# Start in background
+docker-compose up -d api
+
+# Stop the service
+docker-compose down
+```
+
+To run training:
+
+```bash
+# Run training with Docker Compose
+docker-compose --profile train up train
+```
+
+The API will be available at `http://localhost:8000`.
 
 ---
 

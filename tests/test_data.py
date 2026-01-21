@@ -1,15 +1,16 @@
-from project.data import MyDataset
+from project.data import MyDataset, preprocess
 
 import numpy as np
 import pytest
 import torch
 from torch.utils.data import Dataset
 
+
 def test_always_passes():
     assert True
 
 
-def test_my_dataset(tmp_path: Path):
+def test_my_dataset(tmp_path):
     """Test the MyDataset class."""
     data_path = tmp_path / "raw"
     data_path.mkdir(parents=True, exist_ok=True)
@@ -23,7 +24,7 @@ def test_my_dataset(tmp_path: Path):
     assert isinstance(dataset, Dataset)
 
 
-def test_preprocess(tmp_path: Path, monkeypatch):
+def test_preprocess(tmp_path, monkeypatch):
     """Test the preprocess function."""
     import librosa
 
@@ -54,7 +55,7 @@ def test_preprocess(tmp_path: Path, monkeypatch):
     assert waveform.numel() == 16000
 
 
-def test_dataset_len(tmp_path: Path):
+def test_dataset_len(tmp_path):
     """Test the __len__ method."""
     data_path = tmp_path / "raw"
     data_path.mkdir(parents=True, exist_ok=True)
@@ -70,7 +71,7 @@ def test_dataset_len(tmp_path: Path):
     assert length > 0
 
 
-def test_dataset_getitem(tmp_path: Path):
+def test_dataset_getitem(tmp_path):
     """Test the __getitem__ method."""
     data_path = tmp_path / "raw"
     data_path.mkdir(parents=True, exist_ok=True)
@@ -91,7 +92,7 @@ def test_dataset_getitem(tmp_path: Path):
 
 
 @pytest.mark.parametrize("split", ["train", "val", "test"])
-def test_process_indices_splits(tmp_path: Path, split: str):
+def test_process_indices_splits(tmp_path, split: str):
     """
     Parametrized test to cover the train/val/test branches in process_indices
     while keeping the overall test style simple.
@@ -111,7 +112,7 @@ def test_process_indices_splits(tmp_path: Path, split: str):
     assert len(dataset) > 0
 
 
-def test_preprocess_handles_3gp(tmp_path: Path, monkeypatch):
+def test_preprocess_handles_3gp(tmp_path, monkeypatch):
     """Test that preprocess handles .3gp files (without requiring real decoding)."""
     data_path = tmp_path / "raw"
     output_folder = tmp_path / "processed"
@@ -121,7 +122,7 @@ def test_preprocess_handles_3gp(tmp_path: Path, monkeypatch):
     (data_path / "dog" / "b.3gp").write_bytes(b"fake 3gp")
 
     # Monkeypatch decoding to avoid relying on PyAV in unit tests
-    def fake_load_3gp_audio(self, file_path: Path) -> torch.Tensor:
+    def fake_load_3gp_audio(self, file_path) -> torch.Tensor:
         return torch.ones(16000).float()
 
     monkeypatch.setattr(MyDataset, "_load_3gp_audio", fake_load_3gp_audio)

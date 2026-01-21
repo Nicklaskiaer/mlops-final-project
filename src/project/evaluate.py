@@ -1,5 +1,6 @@
+import logging
 import torch
-import typer
+import hydra
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
@@ -7,12 +8,14 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import classification_report, confusion_matrix
 from tqdm import tqdm
 from typing import List, Dict
+from omegaconf import DictConfig, OmegaConf
 
 # Import your local modules
 from src.project.data import MyDataset
 from src.project.model import HubertClassifier
 
-app = typer.Typer()
+# --- Setup Logging ---
+logger = logging.getLogger(__name__)
 
 
 def collate_fn(batch: List[Dict]) -> Dict[str, torch.Tensor]:
@@ -33,19 +36,17 @@ def collate_fn(batch: List[Dict]) -> Dict[str, torch.Tensor]:
     return {"input_values": input_values_padded, "attention_mask": attention_mask, "labels": labels_tensor}
 
 
-@app.command()
-def evaluate(
-    model_path: Path = Path("models/checkpoints/best_hubert_model.pt"),
-    data_path: Path = Path("data/raw"),
-    batch_size: int = 16,
-    device_name: str = "auto",
-    save_matrix: bool = True,
-):
+@hydra.main(version_base=None, config_path="../../configs", config_name="evaluate")
+def evaluate(cfg: DictConfig) -> None:
     """
     Evaluate the trained HuBERT model on the Test set.
+    Uses Hydra for configuration management.
     """
+    # Log the configuration
+    logger.info(f"Evaluation configuration:\n{OmegaConf.to_yaml(cfg)}")
+
     # --- 1. Setup Device (M1/CUDA Support) ---
-    if device_name == "auto":
+    if cfg.device == "auto":
         if torch.cuda.is_available():
             device = torch.device("cuda")
         elif torch.backends.mps.is_available():
@@ -53,33 +54,43 @@ def evaluate(
         else:
             device = torch.device("cpu")
     else:
-        device = torch.device(device_name)
+        device = torch.device(cfg.device)
 
-    print(f"Using device: {device}")
+    logger.info(f"Using device: {device}")
 
     # --- 2. Load Test Data ---
-    print("Loading test dataset...")
+    data_path = Path(cfg.data.raw_path)
+    logger.info("Loading test dataset...")
     test_dataset = MyDataset(data_path, split="test")
 
     # Get class names for better reporting
-    # Inverting the label_to_idx dictionary: {0: 'belly_pain', 1: 'hungry', ...}
     idx_to_label = {v: k for k, v in test_dataset.label_to_idx.items()}
     class_names = [idx_to_label[i] for i in range(len(idx_to_label))]
     num_labels = len(class_names)
 
-    print(f"Classes: {class_names}")
+    logger.info(f"Classes: {class_names}")
 
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=cfg.evaluation.batch_size,
+        shuffle=False,
+        collate_fn=collate_fn,
+    )
 
     # --- 3. Load Model ---
+    model_path = Path(cfg.checkpoint_path)
     if not model_path.exists():
-        print(f"Error: Model checkpoint not found at {model_path}")
-        raise typer.Exit(code=1)
+        logger.error(f"Model checkpoint not found at {model_path}")
+        raise FileNotFoundError(f"Checkpoint not found: {model_path}")
 
-    print(f"Loading model from {model_path}...")
+    logger.info(f"Loading model from {model_path}...")
 
-    # IMPORTANT: Ensure model_name matches what you trained with (distilhubert)
-    model = HubertClassifier(model_name="ntu-spml/distilhubert", num_labels=num_labels)
+    # Use model config for initialization
+    model = HubertClassifier(
+        model_name=cfg.model.pretrained_name,
+        num_labels=cfg.model.num_labels,
+        freeze_feature_encoder=cfg.model.freeze_feature_encoder,
+    )
 
     # Load weights
     # map_location ensures we can load a GPU model on CPU/MPS if needed
@@ -93,7 +104,7 @@ def evaluate(
     all_preds = []
     all_labels = []
 
-    print("Running inference...")
+    logger.info("Running inference...")
     with torch.no_grad():
         for batch in tqdm(test_loader, desc="Evaluating"):
             input_values = batch["input_values"].to(device)
@@ -113,26 +124,25 @@ def evaluate(
             all_labels.extend(labels.cpu().numpy())
 
     # --- 5. Metrics & Reporting ---
-    print("\n" + "=" * 30)
-    print("CLASSIFICATION REPORT")
-    print("=" * 30)
+    logger.info("=" * 30)
+    logger.info("CLASSIFICATION REPORT")
+    logger.info("=" * 30)
 
-    # FIX: Define the list of all possible label indices [0, 1, ... 7]
     all_label_ids = list(range(num_labels))
 
     # Detailed text report
     report = classification_report(
         all_labels,
         all_preds,
-        labels=all_label_ids,  # <--- ADD THIS: Force it to look for all 8 IDs
-        target_names=class_names,  # Now this matches the list above
-        zero_division=0,  # Handles classes that have no predictions/samples
+        labels=all_label_ids,
+        target_names=class_names,
+        zero_division=0,
     )
+    logger.info(f"\n{report}")
     print(report)
 
     # Confusion Matrix
-    if save_matrix:
-        # FIX: Also pass labels here so the matrix is always 8x8
+    if cfg.evaluation.save_confusion_matrix:
         cm = confusion_matrix(all_labels, all_preds, labels=all_label_ids)
 
         plt.figure(figsize=(10, 8))
@@ -141,11 +151,13 @@ def evaluate(
         plt.ylabel("Actual")
         plt.title("Confusion Matrix - HuBERT Audio Classification")
 
-        save_path = Path("reports/figures/confusion_matrix.png")
+        save_path = Path(cfg.evaluation.output_dir) / "confusion_matrix.png"
         save_path.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path)
-        print(f"\nConfusion matrix saved to: {save_path}")
+        logger.info(f"Confusion matrix saved to: {save_path}")
+
+    logger.info("Evaluation complete.")
 
 
 if __name__ == "__main__":
-    app()
+    evaluate()

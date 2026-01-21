@@ -1,5 +1,5 @@
 import torch
-import typer
+import hydra
 import logging
 import random
 import numpy as np
@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from torch.optim import AdamW
 from tqdm import tqdm
 from typing import List, Dict
+from omegaconf import DictConfig, OmegaConf
 
 # Import your local modules
 from src.project.data import MyDataset
@@ -15,10 +16,7 @@ from src.project.model import HubertClassifier
 from sklearn.metrics import classification_report
 import torchaudio.functional as F_audio
 
-app = typer.Typer()
-
 # --- Setup Logging ---
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -137,26 +135,19 @@ def collate_fn(batch: List[Dict]) -> Dict[str, torch.Tensor]:
     return {"input_values": input_values_padded, "attention_mask": attention_mask, "labels": labels_tensor}
 
 
-@app.command()
-def train(
-    data_path: Path = Path("data/raw"),
-    processed_path: Path = Path("data/processed"),
-    output_dir: Path = Path("models/checkpoints"),
-    epochs: int = 10,
-    batch_size: int = 8,
-    learning_rate: float = 3e-5,  # Slightly higher start for scheduler
-    weight_decay: float = 0.01,
-    seed: int = 42,
-    device_name: str = "auto",
-    augment_prob: float = 0.5,
-):
+@hydra.main(version_base=None, config_path="../../configs", config_name="train")
+def train(cfg: DictConfig) -> None:
     """
     Train the HuBERT Classifier with Augmentation and Gradient Clipping.
+    Uses Hydra for configuration management.
     """
-    seed_everything(seed)
+    # Log the configuration
+    logger.info(f"Training configuration:\n{OmegaConf.to_yaml(cfg)}")
+
+    seed_everything(cfg.seed)
 
     # --- 1. Setup Device ---
-    if device_name == "auto":
+    if cfg.device == "auto":
         if torch.cuda.is_available():
             device = torch.device("cuda")
         elif torch.backends.mps.is_available():
@@ -164,11 +155,14 @@ def train(
         else:
             device = torch.device("cpu")
     else:
-        device = torch.device(device_name)
+        device = torch.device(cfg.device)
 
     logger.info(f"Using device: {device}")
 
     # --- 2. Prepare Data ---
+    data_path = Path(cfg.data.raw_path)
+    processed_path = Path(cfg.data.processed_path)
+
     if not processed_path.exists():
         logger.warning(f"Processed path {processed_path} does not exist. Ensure data is ready.")
 
@@ -179,40 +173,65 @@ def train(
     num_labels = len(train_dataset.label_to_idx)
     logger.info(f"Detected {num_labels} classes.")
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=0)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=cfg.training.batch_size,
+        shuffle=True,
+        collate_fn=collate_fn,
+        num_workers=cfg.training.num_workers,
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=cfg.training.batch_size,
+        shuffle=False,
+        collate_fn=collate_fn,
+    )
 
     # --- 3. Initialize Model & Components ---
-    logger.info("Initializing HuBERT model...")
-    model = HubertClassifier(num_labels=num_labels)
+    logger.info(f"Initializing model: {cfg.model.pretrained_name}")
+    model = HubertClassifier(
+        model_name=cfg.model.pretrained_name,
+        num_labels=cfg.model.num_labels,
+        freeze_feature_encoder=cfg.model.freeze_feature_encoder,
+    )
     model.to(device)
 
-    # Augmenter
-    augmenter = WaveformAugmenter(
-        sample_rate=16000,  # HuBERT standard
-        p=augment_prob,
-        pitch_shift_max=2,  # +/- 2 semitones
-        mask_freq_width=1500,  # Cut up to 1500Hz bands
-    )
-    augmenter.to(device)
+    # Augmenter (only if enabled)
+    augmenter = None
+    if cfg.augmentation.enabled:
+        augmenter = WaveformAugmenter(
+            sample_rate=cfg.augmentation.sample_rate,
+            p=cfg.augmentation.probability,
+            noise_level=cfg.augmentation.noise_level,
+            pitch_shift_max=cfg.augmentation.pitch_shift_max,
+            mask_freq_width=cfg.augmentation.mask_freq_width,
+        )
+        augmenter.to(device)
+        logger.info(f"Augmentation enabled with probability {cfg.augmentation.probability}")
+
     # Optimizer
-    optimizer = AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    optimizer = AdamW(
+        model.parameters(),
+        lr=cfg.training.learning_rate,
+        weight_decay=cfg.training.weight_decay,
+    )
 
     # Scheduler: Linear warmup is standard for Transformers
-    total_steps = len(train_loader) * epochs
+    total_steps = len(train_loader) * cfg.training.epochs
     scheduler = torch.optim.lr_scheduler.OneCycleLR(
         optimizer,
-        max_lr=learning_rate,
+        max_lr=cfg.training.learning_rate,
         total_steps=total_steps,
-        pct_start=0.1,  # 10% warmup
+        pct_start=cfg.scheduler.pct_start,
     )
 
     # --- 4. Training Loop ---
     best_val_f1 = 0.0
+    output_dir = Path(cfg.output.checkpoint_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for epoch in range(epochs):
-        logger.info(f"Starting Epoch {epoch + 1}/{epochs}")
+    for epoch in range(cfg.training.epochs):
+        logger.info(f"Starting Epoch {epoch + 1}/{cfg.training.epochs}")
 
         # --- Train Step ---
         model.train()
@@ -229,10 +248,10 @@ def train(
 
             optimizer.zero_grad(set_to_none=True)
 
-            # Apply Augmentation (Only during training)
-            # We use no_grad because we don't want to learn the parameters of the noise generation
-            with torch.no_grad():
-                input_values = augmenter(input_values, attention_mask)
+            # Apply Augmentation (Only during training, if enabled)
+            if augmenter is not None:
+                with torch.no_grad():
+                    input_values = augmenter(input_values, attention_mask)
 
             # Forward pass
             loss, logits = model(input_values=input_values, attention_mask=attention_mask, labels=labels)
@@ -241,7 +260,7 @@ def train(
             loss.backward()
 
             # GRADIENT CLIPPING (Essential for stability)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=cfg.training.gradient_clip_norm)
 
             optimizer.step()
             scheduler.step()
@@ -306,4 +325,4 @@ def train(
 
 
 if __name__ == "__main__":
-    app()
+    train()

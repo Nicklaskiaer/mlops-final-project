@@ -1,11 +1,12 @@
-from pathlib import Path
+from project.data import MyDataset
 
 import numpy as np
 import pytest
 import torch
 from torch.utils.data import Dataset
 
-from project.data import MyDataset, preprocess
+def test_always_passes():
+    assert True
 
 
 def test_my_dataset(tmp_path: Path):

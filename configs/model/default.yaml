@@ -1,0 +1,5 @@
+# Default model configuration
+name: distilhubert
+pretrained: ntu-spml/distilhubert
+num_labels: 8
+freeze_feature_encoder: true

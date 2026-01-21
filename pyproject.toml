@@ -26,6 +26,8 @@ dependencies = [
     "coverage>=7.13.1",
     "fastapi==0.128.0",
     "ffmpeg>=1.4",
+    "hydra-core>=1.3.2",
+    "omegaconf>=2.3.0",
     "librosa>=0.11.0",
     "matplotlib>=3.10.8",
     "python-multipart>=0.0.21",

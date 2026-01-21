@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from project.data import MyDataset
 
 
@@ -12,7 +10,6 @@ def test_dataset_import():
     # Just verify the class exists and can be created with a path
     assert MyDataset is not None
     assert callable(MyDataset)
-
 
 
 # def test_my_dataset():

@@ -1,7 +1,6 @@
 import torch
 import typer
 import json
-import torchaudio
 import av  # <--- CRITICAL: PyAV handles the .3gp files
 import numpy as np
 from pathlib import Path
@@ -133,6 +132,8 @@ class MyDataset(Dataset):
 
         # --- STRATEGY B: Handle everything else with Torchaudio ---
         else:
+            import torchaudio  # Lazy import to avoid CUDA issues on CI
+
             wav, sr = torchaudio.load(path_str)
 
             # Resample

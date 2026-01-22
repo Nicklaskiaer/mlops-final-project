@@ -14,8 +14,24 @@ data:
 training:
   epochs: 10
   batch_size: 8
-  learning_rate: 2e-5
+  learning_rate: 3e-5
+  weight_decay: 0.01
   num_workers: 0
+  gradient_clip_norm: 1.0
+
+# Data augmentation
+augmentation:
+  enabled: true
+  probability: 0.5
+  sample_rate: 16000
+  pitch_shift_max: 2
+  mask_freq_width: 1500
+  noise_level: 0.005
+
+# Learning rate scheduler
+scheduler:
+  name: one_cycle
+  pct_start: 0.1  # 10% warmup
 
 # Device configuration
 device: auto  # Options: auto, cpu, cuda, mps

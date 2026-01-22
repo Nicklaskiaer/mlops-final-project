@@ -1,5 +1,6 @@
-# Default model configuration
+# Default model configuration (DistilHuBERT - lightweight, fast)
 name: distilhubert
-pretrained: ntu-spml/distilhubert
+pretrained_name: ntu-spml/distilhubert
 num_labels: 8
 freeze_feature_encoder: true
+sample_rate: 16000

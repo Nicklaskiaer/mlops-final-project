@@ -1,5 +1,6 @@
 # Full HuBERT model configuration (larger, more accurate)
 name: hubert_base
-pretrained: facebook/hubert-base-ls960
+pretrained_name: facebook/hubert-base-ls960
 num_labels: 8
 freeze_feature_encoder: true
+sample_rate: 16000

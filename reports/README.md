@@ -52,25 +52,25 @@ will check the repositories and the code to verify your answers.
 
 ### Week 1
 
-* [ ] Create a git repository (M5)
-* [ ] Make sure that all team members have write access to the GitHub repository (M5)
-* [ ] Create a dedicated environment for you project to keep track of your packages (M2)
-* [ ] Create the initial file structure using cookiecutter with an appropriate template (M6)
-* [ ] Fill out the `data.py` file such that it downloads whatever data you need and preprocesses it (if necessary) (M6)
-* [ ] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6)
-* [ ] Remember to either fill out the `requirements.txt`/`requirements_dev.txt` files or keeping your
+* [X] Create a git repository (M5)
+* [X] Make sure that all team members have write access to the GitHub repository (M5)
+* [X] Create a dedicated environment for you project to keep track of your packages (M2)
+* [X] Create the initial file structure using cookiecutter with an appropriate template (M6)
+* [?] Fill out the `data.py` file such that it downloads whatever data you need and preprocesses it (if necessary) (M6)
+* [X] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6)
+* [X] Remember to either fill out the `requirements.txt`/`requirements_dev.txt` files or keeping your
     `pyproject.toml`/`uv.lock` up-to-date with whatever dependencies that you are using (M2+M6)
-* [ ] Remember to comply with good coding practices (`pep8`) while doing the project (M7)
-* [ ] Do a bit of code typing and remember to document essential parts of your code (M7)
-* [ ] Setup version control for your data or part of your data (M8)
-* [ ] Add command line interfaces and project commands to your code where it makes sense (M9)
-* [ ] Construct one or multiple docker files for your code (M10)
+* [X] Remember to comply with good coding practices (`pep8`) while doing the project (M7)
+* [X] Do a bit of code typing and remember to document essential parts of your code (M7)
+* [X] Setup version control for your data or part of your data (M8)
+* [X] Add command line interfaces and project commands to your code where it makes sense (M9)
+* [X] Construct one or multiple docker files for your code (M10)
 * [ ] Build the docker files locally and make sure they work as intended (M10)
-* [ ] Write one or multiple configurations files for your experiments (M11)
-* [ ] Used Hydra to load the configurations and manage your hyperparameters (M11)
+* [X] Write one or multiple configurations files for your experiments (M11)
+* [X] Used Hydra to load the configurations and manage your hyperparameters (M11)
 * [ ] Use profiling to optimize your code (M12)
-* [ ] Use logging to log important events in your code (M14)
-* [ ] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14)
+* [X] Use logging to log important events in your code (M14)
+* [!] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14)
 * [ ] Consider running a hyperparameter optimization sweep (M14)
 * [ ] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15)
 
@@ -123,7 +123,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 1 fill here ---
+--- 110 ---
 
 ### Question 2
 > **Enter the study number for each member in the group**
@@ -134,7 +134,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 2 fill here ---
+--- s214958, s216162, s216137, s203929 ---
 
 ### Question 3
 > **Did you end up using any open-source frameworks/packages not covered in the course during your project? If so**
@@ -166,9 +166,17 @@ will check the repositories and the code to verify your answers.
 > *We used ... for managing our dependencies. The list of dependencies was auto-generated using ... . To get a*
 > *complete copy of our development environment, one would have to run the following commands*
 >
-> Answer:
+> We used uv for managing our dependencies in the project. Our dependencies are specified in the pyproject.toml file, including core packages like torch, torchaudio, fastapi, hydra-core, and development tools like pytest, ruff, and pre-commit. The uv.lock file is auto-generated and ensures reproducible installations by locking exact versions.
 
---- question 4 fill here ---
+To get an exact copy of our environment, a new team member would need to:
+
+1. Clone the repository
+
+2. Install uv if not already installed
+
+3. Run uv sync to install all dependencies from the lock file
+
+This creates a virtual environment with the exact same package versions used in development, ensuring consistency across team members and environments.
 
 ### Question 5
 

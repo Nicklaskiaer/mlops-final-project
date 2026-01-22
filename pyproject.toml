@@ -39,6 +39,7 @@ dependencies = [
     "transformers>=4.57.5",
     "typer==0.21.1",
     "uvicorn==0.40.0",
+    "markdown>=3.10",
 ]
 
 [dependency-groups]

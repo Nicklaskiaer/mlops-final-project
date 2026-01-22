@@ -59,6 +59,9 @@ dev = [
 torch = [
     { index = "pytorch-cpu" },
 ]
+torchaudio = [
+    { index = "pytorch-cpu" }
+]
 torchvision = [
     { index = "pytorch-cpu" },
 ]

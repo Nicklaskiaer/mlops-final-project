@@ -3,6 +3,7 @@ import hydra
 import logging
 import random
 import numpy as np
+import wandb
 from pathlib import Path
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
@@ -143,6 +144,17 @@ def train(cfg: DictConfig) -> None:
     """
     # Log the configuration
     logger.info(f"Training configuration:\n{OmegaConf.to_yaml(cfg)}")
+
+    # --- Initialize Weights & Biases ---
+    if cfg.wandb.enabled:
+        wandb.init(
+            project=cfg.wandb.project,
+            entity=cfg.wandb.entity,
+            name=cfg.wandb.run_name,
+            tags=list(cfg.wandb.tags) if cfg.wandb.tags else None,
+            config=OmegaConf.to_container(cfg, resolve=True),
+        )
+        logger.info(f"W&B initialized: {wandb.run.url}")
 
     seed_everything(cfg.seed)
 
@@ -313,6 +325,20 @@ def train(cfg: DictConfig) -> None:
         logger.info(f"Train Loss: {avg_train_loss:.4f} | Train Acc: {train_acc:.4f}")
         logger.info(f"Val Loss:   {avg_val_loss:.4f} | Val Acc:   {val_acc:.4f} | Val F1: {val_f1_macro:.4f}")
 
+        # Log metrics to W&B
+        if cfg.wandb.enabled:
+            wandb.log(
+                {
+                    "epoch": epoch + 1,
+                    "train/loss": avg_train_loss,
+                    "train/accuracy": train_acc,
+                    "val/loss": avg_val_loss,
+                    "val/accuracy": val_acc,
+                    "val/f1_macro": val_f1_macro,
+                    "learning_rate": scheduler.get_last_lr()[0],
+                }
+            )
+
         # --- Save Best Model ---
         # Saving based on F1 score is usually better than Loss for classification
         if val_f1_macro > best_val_f1:
@@ -320,6 +346,20 @@ def train(cfg: DictConfig) -> None:
             save_path = output_dir / "best_hubert_model.pt"
             logger.info(f"New Best Model (F1: {val_f1_macro:.4f})! Saving to {save_path}")
             torch.save(model.state_dict(), save_path)
+
+            # Log best model as W&B artifact
+            if cfg.wandb.enabled:
+                artifact = wandb.Artifact(
+                    name=f"model-{wandb.run.id}",
+                    type="model",
+                    description=f"Best model with F1={val_f1_macro:.4f}",
+                )
+                artifact.add_file(str(save_path))
+                wandb.log_artifact(artifact)
+
+    # Finish W&B run
+    if cfg.wandb.enabled:
+        wandb.finish()
 
     logger.info("Training complete.")
 

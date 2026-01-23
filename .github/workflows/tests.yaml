@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ${{ matrix.operating-system }}
     strategy:
-      fail-fast: True
+      fail-fast: true
       matrix:
         operating-system: ["ubuntu-latest", "windows-latest", "macos-latest"]
         python-version: ["3.12"]
@@ -32,5 +32,5 @@ jobs:
 
       - name: Run tests & coverage
         run: |
-          uv run coverage run -i -m pytest tests/
+          uv run coverage run -m pytest tests/
           uv run coverage report -i -m

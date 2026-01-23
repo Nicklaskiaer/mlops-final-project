@@ -823,3 +823,4 @@ Alexander s214958 was lead of continuous integration
 Nicklas s216137 was lead of cloud integration
 
 But as said, we worked together on most things, often practicing pair-programming and rubberducking.
+Generative AI has been used as a tool for  the development of the application, through github copilot, and chatGPT for aditional development support and debugging. 

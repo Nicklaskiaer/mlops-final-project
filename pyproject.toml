@@ -39,6 +39,9 @@ dependencies = [
     "transformers>=4.57.5",
     "typer==0.21.1",
     "uvicorn==0.40.0",
+    "wandb>=0.24.0",
+    "httpx>=0.28.1",
+    "pytest-cov>=7.0.0",
     "markdown>=3.10",
 ]
 

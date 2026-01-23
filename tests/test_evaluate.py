@@ -1,4 +1,3 @@
-import pytest
 import torch
 from src.project.evaluate import collate_fn
 

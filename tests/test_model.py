@@ -1,5 +1,4 @@
 import torch
-import pytest
 from src.project.model import HubertClassifier
 
 

@@ -45,12 +45,12 @@ class TestWaveformAugmenter:
         batch_size, time = 2, 16000
         input_values = torch.randn(batch_size, time)
         attention_mask = torch.zeros(batch_size, time)
-        attention_mask[:, :time//2] = 1  # Only first half is real
+        attention_mask[:, : time // 2] = 1  # Only first half is real
 
         output = augmenter(input_values, attention_mask)
 
         # Padded parts should be zeroed out
-        assert torch.allclose(output[:, time//2:], torch.zeros_like(output[:, time//2:]))
+        assert torch.allclose(output[:, time // 2 :], torch.zeros_like(output[:, time // 2 :]))
 
 
 def test_seed_everything():

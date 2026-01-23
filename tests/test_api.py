@@ -20,7 +20,7 @@ def test_health_check(client):
     assert "model_loaded" in data
 
 
-@patch('src.project.api.model_instance')
+@patch("src.project.api.model_instance")
 def test_predict_endpoint_success(mock_model_instance, client):
     """Test the predict endpoint with a successful prediction."""
     # Mock the model instance
@@ -28,7 +28,7 @@ def test_predict_endpoint_success(mock_model_instance, client):
     mock_model.predict.return_value = {
         "predicted_label_idx": 0,
         "confidence": 0.85,
-        "probabilities": [0.85, 0.05, 0.03, 0.02, 0.02, 0.01, 0.01, 0.01]
+        "probabilities": [0.85, 0.05, 0.03, 0.02, 0.02, 0.01, 0.01, 0.01],
     }
     mock_model_instance.__bool__.return_value = True  # To pass the None check
     mock_model_instance.predict = mock_model.predict
@@ -49,7 +49,7 @@ def test_predict_endpoint_success(mock_model_instance, client):
     assert "details" in data
 
 
-@patch('src.project.api.model_instance', new=None)
+@patch("src.project.api.model_instance", new=None)
 def test_predict_endpoint_no_model(client):
     """Test the predict endpoint when model is not loaded."""
     fake_audio_content = b"fake audio data"
@@ -61,7 +61,7 @@ def test_predict_endpoint_no_model(client):
     assert "Model not loaded" in data["detail"]
 
 
-@patch('src.project.api.model_instance')
+@patch("src.project.api.model_instance")
 def test_predict_endpoint_processing_error(mock_model_instance, client):
     """Test the predict endpoint when processing fails."""
     mock_model = MagicMock()

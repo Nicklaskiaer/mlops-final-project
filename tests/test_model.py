@@ -69,6 +69,7 @@ def test_ensure_audio_format_tensor():
 def test_ensure_audio_format_numpy():
     """Test _ensure_audio_format with numpy array input."""
     import numpy as np
+
     model = HubertClassifier()
     input_array = np.random.randn(16000)
     result = model._ensure_audio_format(input_array)

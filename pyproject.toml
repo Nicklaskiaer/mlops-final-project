@@ -8,9 +8,9 @@ version = "0.0.1"
 description = "Final project"
 authors = [
   { name = "Nicklas", email = "s216137@student.dtu.dk" },
-  { name = "Oliver", email = "s21xxxx@student.dtu.dk" },
-  { name = "Alexander", email = "s21xxxx@student.dtu.dk" },
-  { name = "Julian", email = "s21xxxx@student.dtu.dk" },
+  { name = "Oliver", email = "s216162@student.dtu.dk" },
+  { name = "Alexander", email = "s214958@student.dtu.dk" },
+  { name = "Julian", email = "s203929@student.dtu.dk" },
 ]
 
 keywords = ["machine learning", "MLOps"]
@@ -42,6 +42,8 @@ dependencies = [
     "wandb>=0.24.0",
     "httpx>=0.28.1",
     "pytest-cov>=7.0.0",
+    "markdown>=3.10",
+    "loguru>=0.7.3",
 ]
 
 [dependency-groups]

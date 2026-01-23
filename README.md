@@ -1,53 +1,3 @@
-## Cloud setup action logs
-gcloud auth login
-gcloud services enable artifactregistry.googleapis.com run.googleapis.com
-
-gcloud artifacts repositories create infant-cry-repo \
-    --repository-format=docker \
-    --location=europe-west1 \
-    --description="Docker repository for Infant Cry Project"
-
-gcloud auth configure-docker europe-west1-docker.pkg.dev
-
-  output:
-  Adding credentials for: europe-west1-docker.pkg.dev
-  After update, the following will be written to your Docker config file located at [/Users/nicklaskiaer/.docker/config.json]:
-  {
-    "credHelpers": {
-      "europe-west1-docker.pkg.dev": "gcloud"
-    }
-  }
-
-  Do you want to continue (Y/n)?  y
-
-  Docker configuration file updated.
-
-docker tag infant_cry_api:v1 europe-west1-docker.pkg.dev/dev-lane-484207-e9/infant-cry-repo/infant_cry_api:v1
-docker push europe-west1-docker.pkg.dev/dev-lane-484207-e9/infant-cry-repo/infant_cry_api:v1
-
-gcloud run deploy infant-cry-api \
-    --image europe-west1-docker.pkg.dev/dev-lane-484207-e9/infant-cry-repo/infant_cry_api:v1 \
-    --region europe-west1 \
-    --platform managed \
-    --allow-unauthenticated \
-    --memory 2Gi \
-    --cpu 1 \
-    --port 8080
-
-## docker:
-(normal build)
-docker build -f dockerfiles/api.dockerfile -t infant_cry_api:v1 .
-
-(mac os build, for cloud deployment)
-docker build \
-  --platform linux/amd64 \
-  -f dockerfiles/api.dockerfile \
-  -t europe-west1-docker.pkg.dev/dev-lane-484207-e9/infant-cry-repo/infant_cry_api:v1 .
-
-docker run -p 8000:8000 infant_cry_api:v1
-
-
-
 # Infant Cry Classification Using Lightweight HuBERT
 
 ## Project Overview
@@ -138,6 +88,55 @@ These metrics provide a comprehensive view of classification performance, partic
 ## Expected Outcomes
 
 This project aims to demonstrate that pretrained transformer-based audio models, even in lightweight form, can effectively classify infant emotional states from cry audio despite limited labeled data. The results will provide insight into the feasibility of deploying such models in real-world, resource-constrained environments.
+
+
+## Cloud setup action logs
+gcloud auth login
+gcloud services enable artifactregistry.googleapis.com run.googleapis.com
+
+gcloud artifacts repositories create infant-cry-repo \
+    --repository-format=docker \
+    --location=europe-west1 \
+    --description="Docker repository for Infant Cry Project"
+
+gcloud auth configure-docker europe-west1-docker.pkg.dev
+
+  output:
+  Adding credentials for: europe-west1-docker.pkg.dev
+  After update, the following will be written to your Docker config file located at [/Users/nicklaskiaer/.docker/config.json]:
+  {
+    "credHelpers": {
+      "europe-west1-docker.pkg.dev": "gcloud"
+    }
+  }
+
+  Do you want to continue (Y/n)?  y
+
+  Docker configuration file updated.
+
+docker tag infant_cry_api:v1 europe-west1-docker.pkg.dev/dev-lane-484207-e9/infant-cry-repo/infant_cry_api:v1
+docker push europe-west1-docker.pkg.dev/dev-lane-484207-e9/infant-cry-repo/infant_cry_api:v1
+
+gcloud run deploy infant-cry-api \
+    --image europe-west1-docker.pkg.dev/dev-lane-484207-e9/infant-cry-repo/infant_cry_api:v1 \
+    --region europe-west1 \
+    --platform managed \
+    --allow-unauthenticated \
+    --memory 2Gi \
+    --cpu 1 \
+    --port 8080
+
+## docker:
+(normal build)
+docker build -f dockerfiles/api.dockerfile -t infant_cry_api:v1 .
+
+(mac os build, for cloud deployment)
+docker build \
+  --platform linux/amd64 \
+  -f dockerfiles/api.dockerfile \
+  -t europe-west1-docker.pkg.dev/dev-lane-484207-e9/infant-cry-repo/infant_cry_api:v1 .
+
+docker run -p 8000:8000 infant_cry_api:v1
 
 
 

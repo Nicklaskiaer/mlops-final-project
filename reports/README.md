@@ -56,7 +56,7 @@ will check the repositories and the code to verify your answers.
 * [X] Make sure that all team members have write access to the GitHub repository (M5)
 * [X] Create a dedicated environment for you project to keep track of your packages (M2)
 * [X] Create the initial file structure using cookiecutter with an appropriate template (M6)
-* [?] Fill out the `data.py` file such that it downloads whatever data you need and preprocesses it (if necessary) (M6)
+* [X] Fill out the `data.py` file such that it downloads whatever data you need and preprocesses it (if necessary) (M6)
 * [X] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6)
 * [X] Remember to either fill out the `requirements.txt`/`requirements_dev.txt` files or keeping your
     `pyproject.toml`/`uv.lock` up-to-date with whatever dependencies that you are using (M2+M6)
@@ -65,56 +65,56 @@ will check the repositories and the code to verify your answers.
 * [X] Setup version control for your data or part of your data (M8)
 * [X] Add command line interfaces and project commands to your code where it makes sense (M9)
 * [X] Construct one or multiple docker files for your code (M10)
-* [ ] Build the docker files locally and make sure they work as intended (M10)
+* [X] Build the docker files locally and make sure they work as intended (M10)
 * [X] Write one or multiple configurations files for your experiments (M11)
 * [X] Used Hydra to load the configurations and manage your hyperparameters (M11)
-* [ ] Use profiling to optimize your code (M12)
+* [X] Use profiling to optimize your code (M12)
 * [X] Use logging to log important events in your code (M14)
-* [!] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14)
-* [ ] Consider running a hyperparameter optimization sweep (M14)
-* [ ] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15)
+* [X] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14)
+* [-] Consider running a hyperparameter optimization sweep (M14)
+* [-] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15)
 
 ### Week 2
 
-* [ ] Write unit tests related to the data part of your code (M16)
-* [ ] Write unit tests related to model construction and or model training (M16)
-* [ ] Calculate the code coverage (M16)
-* [ ] Get some continuous integration running on the GitHub repository (M17)
-* [ ] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
-* [ ] Add a linting step to your continuous integration (M17)
-* [ ] Add pre-commit hooks to your version control setup (M18)
-* [ ] Add a continues workflow that triggers when data changes (M19)
-* [ ] Add a continues workflow that triggers when changes to the model registry is made (M19)
-* [ ] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21)
-* [ ] Create a trigger workflow for automatically building your docker images (M21)
-* [ ] Get your model training in GCP using either the Engine or Vertex AI (M21)
-* [ ] Create a FastAPI application that can do inference using your model (M22)
-* [ ] Deploy your model in GCP using either Functions or Run as the backend (M23)
-* [ ] Write API tests for your application and setup continues integration for these (M24)
-* [ ] Load test your application (M24)
-* [ ] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
-* [ ] Create a frontend for your API (M26)
+* [X] Write unit tests related to the data part of your code (M16)
+* [X] Write unit tests related to model construction and or model training (M16)
+* [X] Calculate the code coverage (M16)
+* [X] Get some continuous integration running on the GitHub repository (M17)
+* [X] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
+* [X] Add a linting step to your continuous integration (M17)
+* [X] Add pre-commit hooks to your version control setup (M18)
+* [-] Add a continues workflow that triggers when data changes (M19)
+* [-] Add a continues workflow that triggers when changes to the model registry is made (M19)
+* [-] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21)
+* [-] Create a trigger workflow for automatically building your docker images (M21)
+* [-] Get your model training in GCP using either the Engine or Vertex AI (M21)
+* [X] Create a FastAPI application that can do inference using your model (M22)
+* [-] Deploy your model in GCP using either Functions or Run as the backend (M23)
+* [X] Write API tests for your application and setup continues integration for these (M24)
+* [-] Load test your application (M24)
+* [-] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
+* [X] Create a frontend for your API (M26)
 
 ### Week 3
 
-* [ ] Check how robust your model is towards data drifting (M27)
-* [ ] Setup collection of input-output data from your deployed application (M27)
-* [ ] Deploy to the cloud a drift detection API (M27)
-* [ ] Instrument your API with a couple of system metrics (M28)
-* [ ] Setup cloud monitoring of your instrumented application (M28)
-* [ ] Create one or more alert systems in GCP to alert you if your app is not behaving correctly (M28)
-* [ ] If applicable, optimize the performance of your data loading using distributed data loading (M29)
-* [ ] If applicable, optimize the performance of your training pipeline by using distributed training (M30)
-* [ ] Play around with quantization, compilation and pruning for you trained models to increase inference speed (M31)
+* [-] Check how robust your model is towards data drifting (M27)
+* [-] Setup collection of input-output data from your deployed application (M27)
+* [-] Deploy to the cloud a drift detection API (M27)
+* [-] Instrument your API with a couple of system metrics (M28)
+* [-] Setup cloud monitoring of your instrumented application (M28)
+* [-] Create one or more alert systems in GCP to alert you if your app is not behaving correctly (M28)
+* [-] If applicable, optimize the performance of your data loading using distributed data loading (M29)
+* [-] If applicable, optimize the performance of your training pipeline by using distributed training (M30)
+* [-] Play around with quantization, compilation and pruning for you trained models to increase inference speed (M31)
 
 ### Extra
 
-* [ ] Write some documentation for your application (M32)
-* [ ] Publish the documentation to GitHub Pages (M32)
-* [ ] Revisit your initial project description. Did the project turn out as you wanted?
-* [ ] Create an architectural diagram over your MLOps pipeline
-* [ ] Make sure all group members have an understanding about all parts of the project
-* [ ] Uploaded all your code to GitHub
+* [X] Write some documentation for your application (M32)
+* [-] Publish the documentation to GitHub Pages (M32)
+* [X] Revisit your initial project description. Did the project turn out as you wanted?
+* [X] Create an architectural diagram over your MLOps pipeline
+* [X] Make sure all group members have an understanding about all parts of the project
+* [X] Uploaded all your code to GitHub
 
 ## Group information
 
@@ -434,7 +434,14 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 14 fill here ---
+As we can see in the image, we are tracking the different loss and accuracy metrics across the epochs. For both the validation, and the training dataset, to monitor for overfitting.
+
+![alt text](image-2.png)
+
+
+Futhermore we can see the summary metrics of the run, to continually help with finding the best hyperparamters. 
+![alt text](image-3.png)
+
 
 ### Question 15
 
@@ -449,7 +456,56 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 15 fill here ---
+We used docker to containerize the api of our application, which then was used for deployment. We did not have time for implementing the dockerized version of the model itself. 
+
+The docker container was created using the following dockerfile. 
+
+```dockerfile
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS base
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    HF_HOME=/app/models/hf_cache
+
+# 'libgomp1' fixes your specific error (OpenMP for PyTorch)
+# 'libsndfile1' is required by Torchaudio/Librosa to read .wav files
+RUN apt-get update && apt-get install -y \
+    libgomp1 \
+    libsndfile1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY uv.lock uv.lock
+COPY pyproject.toml pyproject.toml
+RUN uv sync --frozen --no-install-project
+
+COPY src src/
+COPY models/checkpoints models/checkpoints/
+
+COPY README.md README.md
+COPY LICENSE LICENSE
+
+RUN uv sync --frozen
+
+ENTRYPOINT ["uv", "run", "uvicorn", "src.project.api:app", "--host", "0.0.0.0", "--port", "8080"]
+```
+
+
+To build the container, we used the following command. 
+(mac os build, for cloud deployment)
+```bash
+docker build \
+  --platform linux/amd64 \
+  -f dockerfiles/api.dockerfile \
+  -t europe-west1-docker.pkg.dev/dev-lane-484207-e9/infant-cry-repo/infant_cry_api:v1 .
+```
+
+and for running the container:
+```bash
+docker run -p 8000:8000 infant_cry_api:v1
+```
+
 
 ### Question 16
 
@@ -464,7 +520,12 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 16 fill here ---
+As mentioned earlier, we implemented the debugger for our project, to be able to find the bugs asap. 
+
+
+Specifically, being able to follow along in the flow of the pipeline, we were able to see the transformations from raw data, to model outputs, thus being able to identify problem areas. Which we found was the most effective way of debugging. 
+
+We did profile the code a couple times, but it didnt help with that specific bug. 
 
 ## Working in the cloud
 
@@ -481,7 +542,12 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 17 fill here ---
+We used a couple of services. 
+
+1. Artifact Registry, was used for supplying GCP with our code.
+2. compute engine api, for hosting the api server for the model. 
+
+We would have liked, if more time had been available, to have used vertex AI for training and hosting the model. 
 
 ### Question 18
 
@@ -496,7 +562,22 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 18 fill here ---
+We used the compute engine to host the containerized api application. It was created using the following command: 
+
+```bash
+gcloud run deploy infant-cry-api \
+    --image europe-west1-docker.pkg.dev/dev-lane-484207-e9/infant-cry-repo/infant_cry_api:v1 \
+    --region europe-west1 \
+    --platform managed \
+    --allow-unauthenticated \
+    --memory 2Gi \
+    --cpu 1 \
+    --port 8080
+```
+Thus it has 2Gi memory, 1 cpu.
+
+
+
 
 ### Question 19
 
@@ -505,7 +586,8 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 19 fill here ---
+We did not use GCP buckets to store our data. This was due to the limited size of our data. 
+
 
 ### Question 20
 
@@ -514,7 +596,11 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 20 fill here ---
+repos list:
+![alt text](image-1.png)
+
+inside repo:
+![alt text](image.png)
 
 ### Question 21
 
@@ -523,7 +609,7 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 21 fill here ---
+We did not use cloudbuild for CI/CD
 
 ### Question 22
 
@@ -538,7 +624,7 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 22 fill here ---
+No, we unfortunatly did not manage to do this. 
 
 ## Deployment
 
@@ -555,7 +641,9 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 23 fill here ---
+Yes, we used fastAPI to create an api for the model inference. Where the user would be able to upload a .wav file, and then see the models prediction for the specific audio file.
+
+
 
 ### Question 24
 
@@ -571,7 +659,20 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 24 fill here ---
+The model was wrapped into a docker container. And deployed to gcp.
+
+<URL>https://infant-cry-api-745896389088.europe-west1.run.app/docs</URL>
+
+This uses fastAPI's default frontend feature with the /docs endpoint.
+It can also be tested using the following curl:
+
+```bash
+curl -X 'POST' \
+  'https://infant-cry-api-745896389088.europe-west1.run.app/predict' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F '<PATH-TO-FILE>'
+```
 
 ### Question 25
 
@@ -586,7 +687,20 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 25 fill here ---
+We do unit testing on the API, testing for corrent and incorrect ouputs, and for connection health. 
+for example this health check test:
+
+```python
+def test_health_check(client):
+    """Test the health check endpoint."""
+    response = client.get("/health")
+    assert response.status_code == 200
+    data = response.json()
+    assert "status" in data
+    assert data["status"] == "ok"
+    assert "model_loaded" in data
+```
+
 
 ### Question 26
 
@@ -601,7 +715,8 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 26 fill here ---
+No we did not manage to do this. 
+monitoring would supply a detection help with minimizing data drifting, and in general it is paramount that, within AI ethics, when a model is deployed, that it is continuously tested and validated, to be up to standard. 
 
 ## Overall discussion of project
 
@@ -620,7 +735,12 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 27 fill here ---
+we ended up using under 1$ in Google Cloud Provider. 
+and with github actions, we ended up using 1,186 minuts of runtime, across 576 job runs. 
+
+We cannot yet see the prices of individual services, since the amount is too low an the time is too short. 
+
+We enjoyed working in the cloud, it is cool to use tools and technology that is standard practice in the industry. 
 
 ### Question 28
 
@@ -636,7 +756,7 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 28 fill here ---
+No we didnt. 
 
 ### Question 29
 
@@ -653,7 +773,12 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 29 fill here ---
+The starting point in the diagram is the local setup. Where the developer writes code, leveraging the development processes with tools like hydra and wandb, and pushed it to github, where github runs the CI through github actions, testing the code. 
+
+The developer then containerizes the application and then pushes, and deployes it to google cloud.
+
+![alt text](overview.jpg)
+
 
 ### Question 30
 
@@ -667,7 +792,12 @@ In the beginning we did not run the experients using a
 >
 > Answer:
 
---- question 30 fill here ---
+We spent the most time getting the application deployed to the cloud. And generally gaining an understanding of what should be deployed, what should not, and how to do it. 
+
+Furthermode we struggeled with the projects general open nature. And that for each feature, it did not necessarily feel like the feature is being implemented for developer experience, but rather to check off the boxes. This could be due to a wrong priority ordering from our side. But it could also be the result of there being so many options, in such a short working period. 
+
+It was also a hard task to train our model on this dataset, because the dataset was pretty unbalanced, generally fairly small, and the hard truth is pretty hard to trust in this case. 
+
 
 ### Question 31
 
@@ -685,4 +815,11 @@ In the beginning we did not run the experients using a
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
---- question 31 fill here ---
+We split the work pretty evenly, but worked together as a group for most of it. Each person had an area of focus assigned.
+
+Julian s203929 was lead of model development,
+Oliver s216162 was lead of reproducibility
+Alexander s214958 was lead of continuous integration
+Nicklas s216137 was lead of cloud integration
+
+But as said, we worked together on most things, often practicing pair-programming and rubberducking.

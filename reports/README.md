@@ -123,7 +123,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- 110 ---
+110
 
 ### Question 2
 > **Enter the study number for each member in the group**
@@ -134,7 +134,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- s214958, s216162, s216137, s203929 ---
+s214958, s216162, s216137, s203929
 
 ### Question 3
 > **Did you end up using any open-source frameworks/packages not covered in the course during your project? If so**
@@ -148,7 +148,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 3 fill here ---
+We used huggingface transformers, to get the DistilHuBERT transformer model.
 
 ## Coding environment
 
@@ -166,7 +166,7 @@ will check the repositories and the code to verify your answers.
 > *We used ... for managing our dependencies. The list of dependencies was auto-generated using ... . To get a*
 > *complete copy of our development environment, one would have to run the following commands*
 >
-> We used uv for managing our dependencies in the project. Our dependencies are specified in the pyproject.toml file, including core packages like torch, torchaudio, fastapi, hydra-core, and development tools like pytest, ruff, and pre-commit. The uv.lock file is auto-generated and ensures reproducible installations by locking exact versions.
+We used uv for managing our dependencies in the project. Our dependencies are specified in the pyproject.toml file, including core packages like torch, torchaudio, fastapi, hydra-core, and development tools like pytest, ruff, and pre-commit. The uv.lock file is auto-generated and ensures reproducible installations by locking exact versions.
 
 To get an exact copy of our environment, a new team member would need to:
 
@@ -174,7 +174,7 @@ To get an exact copy of our environment, a new team member would need to:
 
 2. Install uv if not already installed
 
-3. Run uv sync to install all dependencies from the lock file
+3. Run uv sync to install all dependencies specified in the pyproject file. 
 
 This creates a virtual environment with the exact same package versions used in development, ensuring consistency across team members and environments.
 
@@ -192,7 +192,21 @@ This creates a virtual environment with the exact same package versions used in 
 >
 > Answer:
 
---- question 5 fill here ---
+We used the cookiecutter template, and adjusted some things to exactly fit our project. 
+We adjusted the github workflows. 
+We changed the dockerfiles to fit with out project.
+
+We filled out the files: 
+data.py,
+train.py,
+model.py,
+evaluate.py,
+api.py,
+
+and the tests:
+test_api.py
+test_data.py
+test_model.py
 
 ### Question 6
 
@@ -207,7 +221,11 @@ This creates a virtual environment with the exact same package versions used in 
 >
 > Answer:
 
---- question 6 fill here ---
+We implemented linting through the pre-commit hooks, as well as having it as a github workflow. Thereby if the linting test wasnt passed, the code could not be merged. This ensures an overall common format and code structure. Without unused imports and other bad code practices. 
+
+The linting was performed using ruff, using ruff check and ruff format. 
+
+It is important for large project due to the common understanding in a large team. It is easier to read code that you have seen the format of before. Thus speeding up PR-reviews, helping eachother with new code, and more. 
 
 ## Version control
 
@@ -226,7 +244,8 @@ This creates a virtual environment with the exact same package versions used in 
 >
 > Answer:
 
---- question 7 fill here ---
+In total we have implemented 27 tests. Where we are testing the data, api and the model. These are being tested through different asserts. Thus verifiying different code behavior. 
+
 
 ### Question 8
 
@@ -241,7 +260,20 @@ This creates a virtual environment with the exact same package versions used in 
 >
 > Answer:
 
---- question 8 fill here ---
+The code coverage is 53 procent. 
+
+| Name                         | Stmts | Miss | Cover | Missing                                      |
+|------------------------------|:-----:|:----:|:-----:|----------------------------------------------|
+| src/project/__init__.py      |   0   |  0   | 100%  |                                              |
+| src/project/api.py           |  54   | 21   | 61%   | 29–67, 117                                   |
+| src/project/data.py          | 108   | 24   | 78%   | 72, 92–96, 110–127, 140–148, 174, 182         |
+| src/project/evaluate.py      |  87   | 61   | 30%   | 46–159, 163                                  |
+| src/project/model.py         |  66   | 18   | 73%   | 80, 100–119, 127, 130, 136–144                |
+| src/project/train.py         | 175   | 105  | 40%   | 82, 146–364, 368                              |
+| **TOTAL**                    | **490** | **229** | **53%** |                                          |
+
+
+No, i would not trust code that is 100 procent covered. Since the coverage is not an indicator of the quility of the tests, or the behavior of the code itself. 
 
 ### Question 9
 
@@ -256,7 +288,10 @@ This creates a virtual environment with the exact same package versions used in 
 >
 > Answer:
 
---- question 9 fill here ---
+Yes, our workflow was based on using feature branches, goiung out from main. 
+Then we had pull requests, that were setup with a ruleset not allowing a pull-request with non-passing tests to be merged. 
+
+This ensures a clean workflow, and avoids large merge conflict by having short living branches, and that team members can work independently and in parallel. 
 
 ### Question 10
 
@@ -271,7 +306,9 @@ This creates a virtual environment with the exact same package versions used in 
 >
 > Answer:
 
---- question 10 fill here ---
+No, we did not use DVC for the data versioning. We decided that this was not necessary due to the limited size and non changing nature of our dataset. In fact, github was enough versioning for us in this case. 
+
+In the case of having data that is being updated, added to, or very large, DVC is definitely the right choice.
 
 ### Question 11
 
@@ -288,7 +325,17 @@ This creates a virtual environment with the exact same package versions used in 
 >
 > Answer:
 
---- question 11 fill here ---
+We are using github workflow actions for the continuous integration setup, where we have 2 main steps:
+Linting:
+Runs on a single os, ubuntu. 
+we run linting with ruff, first running a check for code errors or warnings. And afterwwards running a check for code formatting mistakes. If either of these fail, the job fails. 
+
+Unit-tests:
+runs on 3 different os's, "ubuntu-latest", "windows-latest", "macos-latest".
+Runs on 1 python version 3.12
+Runs all tests using coverage, and generates a coverage report. 
+
+it uses caching for the uv dependency sync. 
 
 ## Running code and tracking experiments
 
@@ -307,7 +354,55 @@ This creates a virtual environment with the exact same package versions used in 
 >
 > Answer:
 
---- question 12 fill here ---
+We used a mix of typer and hydra. 
+We started by using typer for argparsing. But after using this for a while, we pivoted to a more futureproof and streamlined framework by implementing hydra.
+
+Furthermore, we imlpemented the use of the VSCode debugger, by costumizing the debugger running configuration in the .vscode/launch.json file. 
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug: Train Model",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.project.train", 
+            "args": [
+                "--epochs", "2", 
+                "--batch-size", "8"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Debug: Preprocess Data",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.project.data",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Debug: API Server",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ]
+}
+```
+
+For example using typer: 
+uv run python -m src.project.train --epochs 2 --batch-size 2,
+
+using hydra:
+uv run src/project/train.py --config-path=configs --config-name=train.yaml epochs=2
+
 
 ### Question 13
 
@@ -322,7 +417,7 @@ This creates a virtual environment with the exact same package versions used in 
 >
 > Answer:
 
---- question 13 fill here ---
+In the beginning we did not run the experients using a 
 
 ### Question 14
 
